@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block index_content%}
+    <form method="post">
+        <div>
+            <input type="text" name="text_request">    
+        </div>
+        <div>
+            <input type="submit" value="Получить JSON">
+        </div>
+        
+    </form>
+    {% if requset_string %}
+        {{requset_string}}
+    {% endif %}
+{% endblock %}

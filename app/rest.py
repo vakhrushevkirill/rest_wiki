@@ -8,6 +8,7 @@ class RestApiWiki:
         :param method: метод запроса"""
     string_request_summary = 'https://ru.wikipedia.org/api/rest_v1/page/summary/{}'
     string_request_title = 'https://en.wikipedia.org/api/rest_v1/page/title/{}'
+    
     def __init__(self, method='summary'):
         self.method = method
     
@@ -24,6 +25,7 @@ class RestApiWiki:
             return None
     
     def get_json(self, request):
+        request = request.replace(' ', '_')
         self.result = self._get(request)
         if self.result is not None:
             return self.result.json()
@@ -34,21 +36,38 @@ class RestApiWiki:
     def __str__(self):
         return self.result.__dir__
 
-def reqursiv_dict(rec):
-    if isinstance(rec, dict):
-        for item in rec:
-            print(item, ': ', rec[item])
-            reqursiv_dict(rec[item])
-    elif isinstance(rec, list):
-        for item in rec:
-            print(item)
-            reqursiv_dict(item)
 
+class RequestToWiki():
+    def __init__(self):
+        self.rest_api_wiki_title = RestApiWiki(method='title')
+        self.rest_api_wiki_summary = RestApiWiki(method='summary')
+
+    def get(self, request):
+        self.result = self.rest_api_wiki_title.get_json(request)
+        self.result.update(self.rest_api_wiki_summary.get_json(request))
+        return self.result
+    
+    def __repr__(self):
+        try:
+            return self.result
+        except AttributeError:
+            return ''
+    
+    def __len__():
+        try:
+            return len(self.result)
+        except AttributeError:
+            return ''
+
+def reqursiv_dict(rec):
+    for key in rec:
+        print('Stack', key, ': ', rec[key])
+        if isinstance(rec[key], dict):
+            reqursiv_dict(rec[key])
     
 if __name__ == "__main__":
-    rest_api_wiki_title = RestApiWiki(method='title')
-    rest_api_wiki_summary = RestApiWiki()
-    result = rest_api_wiki_title.get_json('Звезда')
-    result.update(rest_api_wiki_summary.get_json('Звезда'))
-    # print(result)
-    reqursiv_dict(result)
+    rq_to_wiki = RequestToWiki()
+    get_rq = rq_to_wiki.get('Война и мир')
+    print(get_rq, len(get_rq))
+
+    # reqursiv_dict(result)

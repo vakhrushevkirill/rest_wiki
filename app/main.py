@@ -14,12 +14,13 @@ def main(requset_string=None):
         session['requset_string'] = request.form['text_request']
         return redirect(url_for('answer'))
     
-    return render_template('base.html', requset_string=requset_string)
+    return render_template('index.html', requset_string=requset_string)
 
 @app.route('/answer', methods=['POST', 'GET'])
 def answer():
-    
-    return rest_api_wiki.get(session.get('requset_string'))
+    # return rest_api_wiki.get_json(session.get('requset_string'))
+    return render_template('answer.html')
+
 
 
 if __name__ == "__main__":

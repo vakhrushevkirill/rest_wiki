@@ -7,16 +7,10 @@
     <title>Document</title>
 </head>
 <body>
-    <form method="post">
-        <div>
-            <input type="text" name="text_request">    
-        </div>
-        <div>
-            <input type="submit" value="Получить JSON">
-        </div>
-        {% if requset_string %}
-        {{requset_string}}
-        {% endif %}
-    </form>
+
+    {% block index_content%}
+    {% endblock %}
+    {% block answer %}
+    {% endblock %}
 </body>
 </html>
