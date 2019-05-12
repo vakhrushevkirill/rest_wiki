@@ -1,15 +1,14 @@
 from flask import Flask, render_template, request, url_for, redirect, session, escape
-from rest import RestApiWiki
+from rest import RequestToWiki
 
 app = Flask(__name__)
 app.secret_key = 'sdasd'
 
-rest_api_wiki = RestApiWiki()
+rq_to_wiki = RequestToWiki()
 
 @app.route('/', methods=['POST', 'GET'])
 def main(requset_string=None):
     if request.method == 'POST':
-        
         requset_string = request.form['text_request']
         session['requset_string'] = request.form['text_request']
         return redirect(url_for('answer'))
@@ -18,8 +17,10 @@ def main(requset_string=None):
 
 @app.route('/answer', methods=['POST', 'GET'])
 def answer():
-    # return rest_api_wiki.get_json(session.get('requset_string'))
-    return render_template('answer.html')
+    wiki = 'wiki'
+    result_wiki = rq_to_wiki.get(session['requset_string'])
+    print(result_wiki)
+    return render_template('answer.html', result_wiki=result_wiki)
 
 
 

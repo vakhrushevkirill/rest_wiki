@@ -47,27 +47,39 @@ class RequestToWiki():
         self.result.update(self.rest_api_wiki_summary.get_json(request))
         return self.result
     
-    def __repr__(self):
-        try:
-            return self.result
-        except AttributeError:
-            return ''
+    def get_list(self, request):
+        self.result = self.rest_api_wiki_title.get_json(request)
+        self.result.update(self.rest_api_wiki_summary.get_json(request))
+        list_json_level = [[]]
+        return self.get_rec(self.result, list_json_level)
     
-    def __len__():
-        try:
-            return len(self.result)
-        except AttributeError:
-            return ''
+
 
 def reqursiv_dict(rec):
     for key in rec:
         print('Stack', key, ': ', rec[key])
         if isinstance(rec[key], dict):
             reqursiv_dict(rec[key])
+
+def get_level_list(rec):
+    level_one = []
+    level_order = []
+    for key in rec:
+        if isinstance(rec[key], dict) or isinstance(rec[key], list):
+            level_order.append({key: rec[key]})
+        else:
+            level_one.append({key: rec[key]})
+    return level_one, level_order
     
 if __name__ == "__main__":
     rq_to_wiki = RequestToWiki()
     get_rq = rq_to_wiki.get('Война и мир')
-    print(get_rq, len(get_rq))
+    # print(get_rq)
+    level_one, level_order = get_level_list(get_rq)
+    list_level = [level_one]
 
-    # reqursiv_dict(result)
+    for lo in level_order:
+        list_level.append(lo)
+    print(list_level)
+     
+    # print(requr_list(get_rq, temp=[[]], index=0))
