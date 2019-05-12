@@ -1,10 +1,32 @@
 {% extends "base.html" %}
 {% block answer%}
 <h1>Ответ</h1>
-    <!-- {{ result_wiki }}
-    {% for item in result_wiki %}
-        <div>{{ item }} <h6>{{result_wiki[item]}}</h6></div>
+<!-- {{ result_wiki }} -->
+<!-- {% for item in result_wiki %}
+        <div>{{ item }} <h6></h6></div>
     {% endfor %} -->
-
-    
+{{index}}
+{% if index <= 1%}
+<form method="GET">
+    {% for item in result_wiki %}
+    {{item}} {{result_wiki[item]}}
+    {% endfor %}
+    <div>
+        <input type="submit" value="Продолжить" name="action">
+    </div>
+</form>
+{% endif %}
+{% if index > 1%}
+<form method="GET">
+    <!-- {{ result_wiki }} -->
+    {% for item in result_wiki %}
+    {{item}} {{result_wiki[item]}}
+    {% endfor %}
+    <div>
+        <input type="submit" value="Вернуться" name="action">
+        <input type="submit" value="Продолжить" name="action">
+    </div>
+</form>
+{% endif %}
 {% endblock %}
+<textarea name="" id="" cols="30" rows="2"></textarea>
