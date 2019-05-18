@@ -9,7 +9,7 @@
         </div>
         
     </form>
-    {% if requset_string %}
-        {{requset_string}}
+    {% if label_code_error %}
+        <h3>'Упс! Вы вели некоректный запрос, попробуйте снова!' Код ошибки {{label_code_error}}, за подробностями <a href="https://en.wikipedia.org/api/rest_v1/#/Page%20content/get_page_html__title_">REST Wikipedia</a></h3>
     {% endif %}
 {% endblock %}

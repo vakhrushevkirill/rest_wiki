@@ -1,32 +1,28 @@
 {% extends "base.html" %}
 {% block answer%}
-<h1>Ответ</h1>
-<!-- {{ result_wiki }} -->
-<!-- {% for item in result_wiki %}
-        <div>{{ item }} <h6></h6></div>
-    {% endfor %} -->
 {{index}}
-{% if index <= 1%}
-<form method="GET">
-    {% for item in result_wiki %}
-    {{item}} {{result_wiki[item]}}
+<form method="POST" action="/answer">
+    {{ form.csrf_token }}
+    {% for item in json_data %}
+        {% for key in item %}
+            <div>{{ form[key].label }} </div>
+            <div>{{ form[key](size=50) }}</div>
+
+        {% endfor %}
     {% endfor %}
-    <div>
-        <input type="submit" value="Продолжить" name="action">
-    </div>
+    {% if index < 1 %}
+        <input type="submit" value="Продолжить" name="button">
+    {% endif %}
+    {% if index >= 1 and index < (index_max -1) %}
+        <input type="submit" value="Вернуться" name="button">
+        <input type="submit" value="Продолжить" name="button">
+    {% endif %}
+    {% if index == (index_max -1) %}
+        <input type="submit" value="Вернуться" name="button">
+        <div>
+            <input type="submit" value="Сохранить Excel" name="button">
+            <input type="submit" value="Сохранить Word" name="button">
+        </div>
+    {% endif %}
 </form>
-{% endif %}
-{% if index > 1%}
-<form method="GET">
-    <!-- {{ result_wiki }} -->
-    {% for item in result_wiki %}
-    {{item}} {{result_wiki[item]}}
-    {% endfor %}
-    <div>
-        <input type="submit" value="Вернуться" name="action">
-        <input type="submit" value="Продолжить" name="action">
-    </div>
-</form>
-{% endif %}
 {% endblock %}
-<textarea name="" id="" cols="30" rows="2"></textarea>
