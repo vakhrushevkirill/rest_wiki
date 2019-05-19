@@ -1,12 +1,13 @@
 from openpyxl import Workbook, load_workbook
 from docx import Document
 import os
-path_temp = 'temp/'
+path_temp = 'temp/' # Каталог для хранения временных документов
 
 
 class Excel():
-    def __init__(self, title='test'):
+    def __init__(self, data, title='test'):
         """Создает файл excel
+        :param data: объект для сохранения
         :param title: имя файла"""
         wb = Workbook()
         ws = wb.active
@@ -14,6 +15,7 @@ class Excel():
         self.title = title + '.xlsx'
         self.filename = path_temp + title + '.xlsx'
         wb.save(self.filename)
+        self.create(data)
     
     def create(self, data):
         
@@ -61,11 +63,15 @@ class Excel():
 
 
 class Word():
-    def __init__(self, title='test'):
+    def __init__(self, data, title='test'):
+        """Создает doc файл
+        :param data: объект для сохранения
+        :param title: имя файла"""
         self.document = Document()
         self.title = title + '.doc'
         self.filename = path_temp + title + '.doc'
         self.spaces_count = 4
+        self.create(data)
 
     def create(self, data):
         spaces = 0
