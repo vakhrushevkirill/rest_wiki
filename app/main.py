@@ -72,6 +72,7 @@ def check_level(level):
                 level = [level[item]]
     return level
 
+
 def DForm(kwargs):
     """Фабрика по созданию wtf на основе входных данных"""
     class StaticForm(FlaskForm):
