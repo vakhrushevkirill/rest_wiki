@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% block answer%}
-{{index}}
 <form method="POST" action="/answer">
     {{ form.csrf_token }}
     {% for item in json_data %}

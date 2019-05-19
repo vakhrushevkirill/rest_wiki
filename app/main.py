@@ -7,20 +7,71 @@ from wtforms.validators import DataRequired
 from office_save import Excel, Word
 
 app = Flask(__name__)
-app.secret_key = 'sdasd'
+app.secret_key = 'rest_api_wiki' # необходим для работы с session
 
 rq_to_wiki = RequestToWiki()
 
 
 class Index:
     def __init__(self):
+        """Глобальный курсор"""
         self.i = 0
         self.i_max = 0
 
 index = Index()
 
-result_wiki = []
 
+def init():
+    """Инициализация певого блока"""
+    level = rq_to_wiki.list_level[index.i]
+    form = DForm(level)
+    index.i_max = len(rq_to_wiki.list_level)
+    return render_template(
+        'answer.html',
+        json_data=level,
+        form=form,
+        index=index.i,
+        index_max=index.i_max
+        )
+
+
+def accept_changes(rq_lv_index, form):
+    """Перезапись данных из формы"""
+    def is_dict(kwargs, form, key_form):
+        for key in kwargs:
+            if isinstance(kwargs[key], list):
+                is_list(kwargs[key], form, key_form)
+            elif isinstance(kwargs[key], dict):
+                is_dict(kwargs[key], form, key_form)
+            else:
+                if key == key_form:
+                    kwargs[key] = form[key_form] 
+
+    def is_list(args, form, key_form):
+        for item in args:
+            if isinstance(item, dict):
+                is_dict(item, form, key_form)
+            elif isinstance(item, list):
+                is_list(item, form, key_form)
+
+    for key in form:
+        if isinstance(rq_lv_index, list):
+            is_list(rq_lv_index, form, key)
+        elif isinstance(rq_lv_index, dict):
+            is_dict(rq_lv_index, form, key)
+
+
+def check_level(level):
+    # Необходимое зло. Тут мы привязанны к DBForm и сознательно оборачиваем каждый уровень в словарь.
+    # Как исправить знаю, но я уже и так потратил достаточно Вашего времени.
+    if isinstance(level, dict):
+        for item in level:
+            if isinstance(level[item], list):
+                level = level[item]
+                print(level)
+            else:
+                level = [level[item]]
+    return level
 
 def DForm(kwargs):
     """Фабрика по созданию wtf на основе входных данных"""
@@ -75,59 +126,7 @@ def main(requset_string=None):
     else:
         return render_template('index.html')
 
-    return render_template('index.html', requset_string=requset_string)
 
-
-def init():
-    level = rq_to_wiki.list_level[index.i]
-    form = DForm(level)
-    index.i_max = len(rq_to_wiki.list_level)
-    return render_template(
-        'answer.html',
-        json_data=level,
-        form=form,
-        index=index.i,
-        index_max=index.i_max
-        )
-
-
-def accept_changes(rq_lv_index, form):
-    """Перезапись данных из формы"""
-    def is_dict(kwargs, form, key_form):
-        for key in kwargs:
-            if isinstance(kwargs[key], list):
-                is_list(kwargs[key], form, key_form)
-            elif isinstance(kwargs[key], dict):
-                is_dict(kwargs[key], form, key_form)
-            else:
-                if key == key_form:
-                    kwargs[key] = form[key_form] 
-
-    def is_list(args, form, key_form):
-        for item in args:
-            if isinstance(item, dict):
-                is_dict(item, form, key_form)
-            elif isinstance(item, list):
-                is_list(item, form, key_form)
-
-    for key in form:
-        if isinstance(rq_lv_index, list):
-            is_list(rq_lv_index, form, key)
-        elif isinstance(rq_lv_index, dict):
-            is_dict(rq_lv_index, form, key)
-
-
-def check_level(level):
-    # Необходимое зло. Тут мы привязанны к DBForm и сознательно оборачиваем каждый уровень в словарь.
-    # Как исправить знаю, но я уже и так потратил достаточно Вашего времени.
-    if isinstance(level, dict):
-        for item in level:
-            if isinstance(level[item], list):
-                level = level[item]
-                print(level)
-            else:
-                level = [level[item]]
-    return level
 
 @app.route('/answer', methods=['POST', 'GET'])
 def answer():
