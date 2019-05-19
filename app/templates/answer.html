@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% block answer%}
+<h3>Редактирование</h3>
 <form method="POST" action="/answer">
     {{ form.csrf_token }}
     {% for item in json_data %}
         {% for key in item %}
             <div>{{ form[key].label }} </div>
-            <div>{{ form[key](size=50) }}</div>
-
+            <div>{{ form[key](cols = 100) }}</div>
         {% endfor %}
     {% endfor %}
     {% if index < 1 %}

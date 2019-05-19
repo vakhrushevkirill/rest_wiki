@@ -3,18 +3,17 @@ from rest import RequestToWiki, RestApiWiki
 from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField
 from wtforms.validators import DataRequired
-
 from office_save import Excel, Word
 
 app = Flask(__name__)
 app.secret_key = 'rest_api_wiki' # необходим для работы с session
 
-rq_to_wiki = RequestToWiki()
+rq_to_wiki = RequestToWiki() # Обыъект, хронящий json
 
 
 class Index:
     def __init__(self):
-        """Глобальный курсор"""
+        """Глобальный курсор для перемещения по списку блоков json"""
         self.i = 0
         self.i_max = 0
 
@@ -88,9 +87,9 @@ def DForm(kwargs):
             #     is_list(args[key], StaticForm)
             # else:
             setattr(StaticForm, key, TextAreaField(
-            key, 
-            validators=[DataRequired()], 
-            default=args[key]))
+                    key, 
+                    validators=[DataRequired()], 
+                    default=args[key]))
 
     def is_list(args, StaticForm):
         for item in args:
@@ -111,18 +110,21 @@ def main(requset_string=None):
     if request.method == 'POST':
         requset_string = request.form['text_request']
         session['requset_string'] = request.form['text_request']
-        rq_to_wiki.get_level_list(request.form['text_request'])
-        # Статус код 200 означает что запрос к rest api wiki был успешно обработан
-        # во всех остальных случаях, предлагаем пользователю перейти на справку
-        if rq_to_wiki.status_code != 200:
-            label_code_error = rq_to_wiki.status_code
-            return render_template(
-                'index.html', 
-                requset_string=requset_string, 
-                label_code_error=label_code_error
-                )
+        if request.form['text_request']:
+            rq_to_wiki.get_level_list(request.form['text_request'])
+            # Статус код 200 означает что запрос к rest api wiki был успешно обработан
+            # во всех остальных случаях, предлагаем пользователю перейти на справку
+            if rq_to_wiki.status_code != 200 or session['requset_string'] == False:
+                label_code_error = rq_to_wiki.status_code
+                return render_template(
+                    'index.html', 
+                    requset_string=requset_string, 
+                    label_code_error=label_code_error
+                    )
+            else:
+                return redirect(url_for('answer'))
         else:
-            return redirect(url_for('answer'))
+            return render_template('index.html')
     else:
         return render_template('index.html')
 
