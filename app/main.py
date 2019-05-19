@@ -30,15 +30,16 @@ def DForm(kwargs):
 
     def is_dict(args, StaticForm):
         for key in args:
-            if isinstance(key, dict):
-                is_dict(key, StaticForm)
-            elif isinstance(key, list):
-                is_list(key, StaticForm)
-            else:
-                setattr(StaticForm, key, TextAreaField(
-                key, 
-                validators=[DataRequired()], 
-                default=args[key]))
+            # Сознательно ограничиваем создание формы, дабы не усложнять вывод
+            # if isinstance(args[key], dict):
+            #     is_dict(args[key], StaticForm)
+            # elif isinstance(args[key], list):
+            #     is_list(args[key], StaticForm)
+            # else:
+            setattr(StaticForm, key, TextAreaField(
+            key, 
+            validators=[DataRequired()], 
+            default=args[key]))
 
     def is_list(args, StaticForm):
         for item in args:
@@ -77,53 +78,73 @@ def main(requset_string=None):
     return render_template('index.html', requset_string=requset_string)
 
 
+def init():
+    level = rq_to_wiki.list_level[index.i]
+    form = DForm(level)
+    index.i_max = len(rq_to_wiki.list_level)
+    return render_template(
+        'answer.html',
+        json_data=level,
+        form=form,
+        index=index.i,
+        index_max=index.i_max
+        )
+
+
+def accept_changes(rq_lv_index, form):
+    """Перезапись данных из формы"""
+    def is_dict(kwargs, form, key_form):
+        for key in kwargs:
+            if isinstance(kwargs[key], list):
+                is_list(kwargs[key], form, key_form)
+            elif isinstance(kwargs[key], dict):
+                is_dict(kwargs[key], form, key_form)
+            else:
+                if key == key_form:
+                    kwargs[key] = form[key_form] 
+
+    def is_list(args, form, key_form):
+        for item in args:
+            if isinstance(item, dict):
+                is_dict(item, form, key_form)
+            elif isinstance(item, list):
+                is_list(item, form, key_form)
+
+    for key in form:
+        if isinstance(rq_lv_index, list):
+            is_list(rq_lv_index, form, key)
+        elif isinstance(rq_lv_index, dict):
+            is_dict(rq_lv_index, form, key)
+
+
+def check_level(level):
+    # Необходимое зло. Тут мы привязанны к DBForm и сознательно оборачиваем каждый уровень в словарь.
+    # Как исправить знаю, но я уже и так потратил достаточно Вашего времени.
+    if isinstance(level, dict):
+        for item in level:
+            if isinstance(level[item], list):
+                level = level[item]
+                print(level)
+            else:
+                level = [level[item]]
+    return level
+
 @app.route('/answer', methods=['POST', 'GET'])
 def answer():
-    if (request.method == 'GET') and index.i == 0 and request.form.get('button') != 'Вернуться':
-        level = rq_to_wiki.list_level[index.i]
-        form = DForm(level)
-        index.i_max = len(rq_to_wiki.list_level)
-        return render_template(
-            'answer.html',
-            json_data=level,
-            form=form,
-            index=index.i,
-            index_max=index.i_max
-            )
+    if (request.method == 'GET' and 
+        index.i == 0 and 
+        request.form.get('button') != 'Вернуться'):
+        return init()
     elif request.method == 'POST' and index.i >= 0 and index.i <= index.i_max-1:
-        for key in request.form:
-            if isinstance(rq_to_wiki.list_level[index.i], list):
-                for item in rq_to_wiki.list_level[index.i]:
-                    if isinstance(item, dict):
-                        for key_item in item:
-                            if key == key_item:
-                                item[key_item] = request.form[key]
-            elif isinstance(rq_to_wiki.list_level[index.i], dict):
-                for item in rq_to_wiki.list_level[index.i]:
-                    if isinstance(rq_to_wiki.list_level[index.i][item], list):
-                        for value in rq_to_wiki.list_level[index.i][item]:
-                            if isinstance(value, dict):
-                                for key_value in value:
-                                    if key == key_value:
-                                        value[key_value] = request.form[key] 
-                    elif isinstance(rq_to_wiki.list_level[index.i][item], dict):
-                        for value in rq_to_wiki.list_level[index.i][item]:
-                            if key == value:
-                                rq_to_wiki.list_level[index.i][item][value] = request.form[key]
+        accept_changes(rq_to_wiki.list_level[index.i], request.form)              
         if request.form.get('button') == 'Продолжить':
             index.i += 1
         elif request.form.get('button') == 'Вернуться':
             index.i -= 1
         level = rq_to_wiki.list_level[index.i]
-        if isinstance(level, dict):
-            for item in level:
-                if isinstance(level[item], list):
-                    level = level[item]
-                else:
-                    level = [level[item]]
+        level = check_level(level)
         form = DForm(level)
         if request.form.get('button') == 'Сохранить Excel':
-            print('sadasdas')
             ex = Excel(rq_to_wiki.list_level, session['requset_string'])
             return send_file(ex.filename, as_attachment=ex.title)
         if request.form.get('button') == 'Сохранить Word':
