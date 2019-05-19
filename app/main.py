@@ -23,31 +23,34 @@ result_wiki = []
 
 
 def DForm(kwargs):
+    """Фабрика по созданию wtf на основе входных данных"""
     class StaticForm(FlaskForm):
         pass
     setattr(StaticForm, 'kwargs', kwargs)
+
+    def is_dict(args, StaticForm):
+        for key in args:
+            if isinstance(key, dict):
+                is_dict(key, StaticForm)
+            elif isinstance(key, list):
+                is_list(key, StaticForm)
+            else:
+                setattr(StaticForm, key, TextAreaField(
+                key, 
+                validators=[DataRequired()], 
+                default=args[key]))
+
+    def is_list(args, StaticForm):
+        for item in args:
+            if isinstance(item, dict):
+                is_dict(item, StaticForm)
+            elif isinstance(item, list):
+                is_list(item, StaticForm)
+
     if isinstance(kwargs, list):
-        for key in kwargs:
-            
-            for atr in key:
-                setattr(StaticForm, atr, TextAreaField(
-                    atr, 
-                    validators=[DataRequired()], 
-                    default=key[atr]))
+        is_list(kwargs, StaticForm)
     elif isinstance(kwargs, dict):
-        for item in kwargs:
-            if isinstance(kwargs[item], list):
-                for key in kwargs[item]:
-                    for atr in key:
-                        setattr(
-                            StaticForm, 
-                            atr, 
-                            TextAreaField(
-                                atr, 
-                                validators=[DataRequired()], 
-                                default=key[atr]
-                                )
-                            )
+        is_dict(kwargs, StaticForm)
     return StaticForm()
 
 
@@ -57,6 +60,8 @@ def main(requset_string=None):
         requset_string = request.form['text_request']
         session['requset_string'] = request.form['text_request']
         rq_to_wiki.get_level_list(request.form['text_request'])
+        # Статус код 200 означает что запрос к rest api wiki был успешно обработан
+        # во всех остальных случаях, предлагаем пользователю перейти на справку
         if rq_to_wiki.status_code != 200:
             label_code_error = rq_to_wiki.status_code
             return render_template(
@@ -75,7 +80,6 @@ def main(requset_string=None):
 @app.route('/answer', methods=['POST', 'GET'])
 def answer():
     if (request.method == 'GET') and index.i == 0 and request.form.get('button') != 'Вернуться':
-        # rq_to_wiki.get_level_list(session['requset_string'])
         level = rq_to_wiki.list_level[index.i]
         form = DForm(level)
         index.i_max = len(rq_to_wiki.list_level)
@@ -120,12 +124,10 @@ def answer():
         form = DForm(level)
         if request.form.get('button') == 'Сохранить Excel':
             print('sadasdas')
-            ex = Excel(session['requset_string'])
-            ex.create(rq_to_wiki.list_level)
+            ex = Excel(rq_to_wiki.list_level, session['requset_string'])
             return send_file(ex.filename, as_attachment=ex.title)
         if request.form.get('button') == 'Сохранить Word':
-            wb = Word(session['requset_string'])
-            wb.create(rq_to_wiki.list_level)
+            wb = Word(rq_to_wiki.list_level, session['requset_string'])
             return send_file(wb.filename, as_attachment=wb.title)
         return render_template(
             'answer.html', 

@@ -56,7 +56,10 @@ class RequestToWiki():
         return self.result
 
     def get_level_list(self, request):
-        """Не очень удачное решение, признаю! Но смысл """
+        """Не очень удачное решение, признаю! Но смысл в том, что запрос не всегда
+        выдает json одной и той же структуры, поэтому на первый уровень мы бросаем
+        все ключи, что не содержита вложенных структур, а далее мы распределяем 
+        смысловую нагрузку по нисходящему следованию, считая их конечными"""
         self._get(request)
         level_one = []
         level_order = []
@@ -89,5 +92,5 @@ def recur_view(collect, keys_list):
 
 if __name__ == "__main__":
     rq = RequestToWiki()
-    rq = RequestToWiki.get_level_list('Война и мир')
-    
+    rq._get('Sad')
+    print(rq.result)
