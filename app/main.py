@@ -5,11 +5,6 @@ from wtforms import StringField, TextAreaField
 from wtforms.validators import DataRequired
 from office_save import Excel, Word
 
-app = Flask(__name__)
-app.secret_key = 'rest_api_wiki' # необходим для работы с session
-
-rq_to_wiki = RequestToWiki() # Обыъект, хронящий json
-
 
 class Index:
     def __init__(self):
@@ -17,7 +12,12 @@ class Index:
         self.i = 0
         self.i_max = 0
 
-index = Index()
+
+app = Flask(__name__)
+app.secret_key = 'rest_api_wiki' # необходим для работы с session
+
+rq_to_wiki = RequestToWiki() # Обыъект, хронящий json
+index = Index() # Курсор для перемещения по блокам
 
 
 def init():
@@ -67,7 +67,6 @@ def check_level(level):
         for item in level:
             if isinstance(level[item], list):
                 level = level[item]
-                print(level)
             else:
                 level = [level[item]]
     return level
@@ -109,6 +108,7 @@ def DForm(kwargs):
 @app.route('/', methods=['POST', 'GET'])
 def main(requset_string=None):
     if request.method == 'POST':
+        index = Index()
         requset_string = request.form['text_request']
         session['requset_string'] = request.form['text_request']
         if request.form['text_request']:
@@ -139,6 +139,7 @@ def answer():
         return init()
     elif request.method == 'POST' and index.i >= 0 and index.i <= index.i_max-1:
         accept_changes(rq_to_wiki.list_level[index.i], request.form)              
+        print(index.i)
         if request.form.get('button') == 'Продолжить':
             index.i += 1
         elif request.form.get('button') == 'Вернуться':
